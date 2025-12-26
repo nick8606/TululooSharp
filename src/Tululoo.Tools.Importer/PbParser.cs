@@ -4,11 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace Tululoo.Tools.Importer
 {
-    // Lightweight parser to extract top-level metadata from .pb files:
-    // - Structure names
-    // - Global declarations
-    // - Enumerations
-    // - IncludeFile / XIncludeFile lines
+    // Улучшённый PB-парсер, извлекает структуры, globals, includes, declare и тела процедур.
+    // Регулярные выражения используются для быстрой инвентаризации; это НЕ полноценный PB-парсер,
+    // но достаточно для извлечения метаданных и разделения процедуры/блоков для ручной конвертации.
     public class PbParser
     {
         private readonly string _text;
@@ -20,41 +18,60 @@ namespace Tululoo.Tools.Importer
 
         public IEnumerable<string> GetStructures()
         {
-            var matches = Regex.Matches(_text, @"Structure\s+([A-Za-z0-9_]+)\s*(.*?)EndStructure", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(_text, @"(?is)Structure\s+([A-Za-z0-9_]+)\s*(.*?)EndStructure");
             foreach (Match m in matches)
                 yield return m.Groups[1].Value;
         }
 
         public IEnumerable<string> GetGlobals()
         {
-            var matches = Regex.Matches(_text, @"^\s*Global\s+.+", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(_text, @"(?im)^\s*Global\s+(.+)$");
             foreach (Match m in matches)
-                yield return m.Value.Trim();
+                yield return m.Groups[1].Value.Trim();
         }
 
         public IEnumerable<string> GetEnumerations()
         {
-            var matches = Regex.Matches(_text, @"Enumeration\s*(.*?)EndEnumeration", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(_text, @"(?is)Enumeration\s*(.*?)EndEnumeration");
             foreach (Match m in matches)
                 yield return m.Groups[1].Value.Trim();
         }
 
         public IEnumerable<string> GetIncludeFiles()
         {
-            var matches = Regex.Matches(_text, @"(?:IncludeFile|XIncludeFile)\s+""([^""]+)""", RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(_text, @"(?i)(?:IncludeFile|XIncludeFile)\s+""([^""]+)""");
             foreach (Match m in matches)
-                yield return m.Groups[1].Value;
+                yield return m.Groups[1].Value.Trim();
         }
 
-        // Simple extractor of procedure names (Declare / Procedure)
-        public IEnumerable<string> GetProcedures()
+        public IEnumerable<string> GetDeclares()
         {
-            var matches = Regex.Matches(_text, @"(?:Declare\.[^\n]*|Procedure(?:\.\w+)?\s+([A-Za-z0-9_]+))", RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(_text, @"(?im)^\s*Declare\..*$|^\s*Declare\s+.+$");
             foreach (Match m in matches)
+                yield return m.Value.Trim();
+        }
+
+        // Получает имена процедур (Procedure <name> или ProcedureName: forms) и также извлекает тела
+        public IEnumerable<(string Name, string Body)> GetProcedures()
+        {
+            // Находим все Procedure ... EndProcedure блоки
+            var procMatches = Regex.Matches(_text, @"(?is)Procedure(?:\.\w+)?\s+([A-Za-z0-9_]+)\s*(.*?)EndProcedure");
+            foreach (Match m in procMatches)
             {
-                if (!string.IsNullOrEmpty(m.Groups[1].Value))
-                    yield return m.Groups[1].Value;
+                yield return (m.Groups[1].Value, m.Groups[2].Value.Trim());
             }
+
+            // Также рассмотрим Function ... EndProcedure (PowerBASIC может использовать Function or Procedure)
+            var funcMatches = Regex.Matches(_text, @"(?is)Procedure(?:\.\w+)?\s+([A-Za-z0-9_]+)\s*(.*?)EndProcedure");
+            foreach (Match m in funcMatches)
+                yield return (m.Groups[1].Value, m.Groups[2].Value.Trim());
+        }
+
+        // Быстрая выдача имён процедур (без тел)
+        public IEnumerable<string> GetProcedureNames()
+        {
+            foreach (var (Name, _) in GetProcedures())
+                yield return Name;
         }
     }
 }
