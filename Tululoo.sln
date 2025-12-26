@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.33420.545
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tululoo.Core", "src/Tululoo.Core/Tululoo.Core.csproj", "{GUID-CORE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tululoo.Scripting", "src/Tululoo.Scripting/Tululoo.Scripting.csproj", "{GUID-SCRIPTING}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tululoo.Tools.Importer", "src/Tululoo.Tools.Importer/Tululoo.Tools.Importer.csproj", "{GUID-IMPORTER}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{GUID-CORE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{GUID-CORE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{GUID-SCRIPTING}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{GUID-SCRIPTING}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{GUID-IMPORTER}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{GUID-IMPORTER}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal
